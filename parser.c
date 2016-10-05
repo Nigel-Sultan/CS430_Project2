@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "intersection.c"
+#include <ctype.h>
+#include "objects.h"
 
 int line = 1;
 Object object[128];
@@ -146,6 +147,7 @@ void read_scene(char* filename) {
 
       char* value = next_string(json);
 
+        i++;
       if (strcmp(value, "camera") == 0) {
             object[i].type = 0;
       } else if (strcmp(value, "sphere") == 0) {
@@ -197,10 +199,10 @@ void read_scene(char* filename) {
 	    double* value = next_vector(json);
 	    if(object[i].type == 1){
             if((strcmp(key, "color") == 0)){
-                strcpy(object[i].color, value);
+                object[i].sphere.color = value;
             }
             else if((strcmp(key, "position") == 0)){
-                strcpy(object[i].position, value);
+                object[i].sphere.position = value;
             }
             else{
                 fprintf(stderr, "Error: invalid field for type\n");
@@ -208,13 +210,13 @@ void read_scene(char* filename) {
 	    }
 	    else if(object[i].type == 2){
             if((strcmp(key, "color") == 0)){
-                strcpy(object[i].color, value);
+                object[i].plane.color = value;
             }
             else if((strcmp(key, "position") == 0)){
-                strcpy(object[i].position, value);
+                object[i].plane.position = value;
             }
             else if((strcmp(key, "normal") == 0)){
-                strcpy(object[i].normal, value);
+                object[i].plane.normal = value;
             }
             else{
                 fprintf(stderr, "Error: invalid field for type\n");
@@ -246,9 +248,4 @@ void read_scene(char* filename) {
       }
     }
   }
-}
-
-int main(int c, char** argv) {
-  read_scene(argv[1]);
-  return 0;
 }
