@@ -5,7 +5,6 @@
 #include "objects.h"
 
 int line = 1;
-Object object[128];
 
 // next_c() wraps the getc() function and provides error checking and line
 // number maintenance
@@ -79,7 +78,7 @@ char* next_string(FILE* json) {
 
 double next_number(FILE* json) {
   double value;
-  fscanf(json, "%f", &value);
+  fscanf(json, "%lf", &value);
   // Error check this..
   return value;
 }
@@ -103,7 +102,7 @@ double* next_vector(FILE* json) {
 }
 
 
-void read_scene(char* filename) {
+void read_scene(char* filename, Object** objects) {
   int c;
   FILE* json = fopen(filename, "r");
 
@@ -123,11 +122,13 @@ void read_scene(char* filename) {
 
   int i = 0;
   while (1) {
+        Object* object = malloc(sizeof(Object));
+        objects[i] = object;
     c = fgetc(json);
     if (c == ']') {
       fprintf(stderr, "Error: This is the worst scene file EVER.\n");
       fclose(json);
-      return;
+      exit(1);
     }
     if (c == '{') {
       skip_ws(json);
@@ -146,14 +147,14 @@ void read_scene(char* filename) {
       skip_ws(json);
 
       char* value = next_string(json);
+      char* temp = value;
 
-        i++;
       if (strcmp(value, "camera") == 0) {
-            object[i].type = 0;
+            objects[i]->type = 0;
       } else if (strcmp(value, "sphere") == 0) {
-          object[i].type = 1;
+          objects[i]->type = 1;
       } else if (strcmp(value, "plane") == 0) {
-          object[i].type = 2;
+          objects[i]->type = 2;
       } else {
 	fprintf(stderr, "Error: Unknown type, \"%s\", on line number %d.\n", value, line);
 	exit(1);
@@ -177,59 +178,58 @@ void read_scene(char* filename) {
 	  if ((strcmp(key, "width") == 0) ||
 	      (strcmp(key, "height") == 0) ||
 	      (strcmp(key, "radius") == 0)) {
-	    double value = next_number(json);
-	    if(object[i].type == 0){
+            double value = next_number(json);
             if ((strcmp(key, "width") == 0)){
-                object[i].camera.width = value;
+                objects[i]->camera.width = value;
+            }
+            else if(strcmp(key, "height") == 0){
+                objects[i]->camera.height = value;
+            }
+            else if(strcmp(key, "radius") == 0){
+                objects[i]->sphere.radius = value;
             }
             else{
-                object[i].camera.height = value;
-            }
-	    }
-	    else if(object[i].type == 1){
-                object[i].sphere.radius = value;
-        }
-        else{
             fprintf(stderr, "Error: invalid field for type\n");
-        }
+            }
 	  }
 	  else if ((strcmp(key, "color") == 0) ||
 		     (strcmp(key, "position") == 0) ||
 		     (strcmp(key, "normal") == 0)) {
 	    double* value = next_vector(json);
-	    if(object[i].type == 1){
-            if((strcmp(key, "color") == 0)){
-                object[i].sphere.color = value;
+	    if (strcmp(key, "color") == 0) {
+            objects[i]->color[0] = value[0];
+            objects[i]->color[1] = value[1];
+            objects[i]->color[2] = value[2];
+        }
+        else if (strcmp(key, "position") == 0) {
+            if (strcmp(temp, "sphere") == 0) {
+                objects[i]->sphere.position[0] = value[0];
+                objects[i]->sphere.position[1] = value[1];
+                objects[i]->sphere.position[2] = value[2];
             }
-            else if((strcmp(key, "position") == 0)){
-                object[i].sphere.position = value;
+            else if (strcmp(temp, "plane") == 0) {
+            objects[i]->plane.position[0] = value[0];
+            objects[i]->plane.position[1] = value[1];
+            objects[i]->plane.position[2] = value[2];
             }
-            else{
-                fprintf(stderr, "Error: invalid field for type\n");
+            else {
+            fprintf(stderr, "Error: Unknown type!.\n");
+            exit(1);
             }
-	    }
-	    else if(object[i].type == 2){
-            if((strcmp(key, "color") == 0)){
-                object[i].plane.color = value;
-            }
-            else if((strcmp(key, "position") == 0)){
-                object[i].plane.position = value;
-            }
-            else if((strcmp(key, "normal") == 0)){
-                object[i].plane.normal = value;
-            }
-            else{
-                fprintf(stderr, "Error: invalid field for type\n");
-            }
-	    }
-
-	  } else {
-	    fprintf(stderr, "Error: Unknown property, \"%s\", on line %d.\n",
-		    key, line);
-	    //char* value = next_string(json);
-	  }
+        }
+        else {
+        objects[i]->plane.normal[0] = value[0];
+        objects[i]->plane.normal[1] = value[1];
+        objects[i]->plane.normal[2] = value[2];
+        }
+    }
+    else {
+        fprintf(stderr, "Error: Unkonwn property, %s, on line %d.\n", key, line);
+        fclose(json);
+        exit(1);
+    }
 	  skip_ws(json);
-	} else {
+} else {
 	  fprintf(stderr, "Error: Unexpected value on line %d\n", line);
 	  exit(1);
 	}
