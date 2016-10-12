@@ -69,9 +69,11 @@ static inline void normalize(double* v) {
 
 
 double sphere_intersection(double* Ro, double* Rd, double* Center, double r){
-    double a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
-    double b = 2 * ((Ro[0] * Rd[0]) + (Ro[1] * Rd[1]) + (Ro[2] * Rd[2]));
-    double c = sqr(Ro[0]) + sqr(Ro[1]) + sqr(Ro[2]) + sqr(Center[0]) + sqr(Center[1]) + sqr(Center[2]) - 2*(Ro[0]*Center[0] + Rd[0]*Center[0] + Ro[1]*Center[1] + Rd[1]*Center[1] + Ro[2]*Center[2] + Rd[2]*Center[2]) - sqr(r);
+   double a = sqr(Rd[0]) + sqr(Rd[1]) + sqr(Rd[2]);
+  	double b = 2*(Ro[0]*Rd[0] + Ro[1]*Rd[1] + Ro[2]*Rd[2] - Rd[0]*Center[0] - Rd[1]*Center[1] - Rd[2]*Center[2]);
+  	double c = sqr(Ro[0]) + sqr(Ro[1]) + sqr(Ro[2]) + sqr(Center[0]) +
+             sqr(Center[1]) + sqr(Center[2]) - 2*(Ro[0]*Center[0]
++ Ro[1]*Center[1] + Ro[2]*Center[2]) - sqr(r);
     double d = sqr(b) - 4*a*c;
     if(d < 0){
  	return -1;
