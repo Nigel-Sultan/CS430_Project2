@@ -74,19 +74,17 @@ double sphere_intersection(double* Ro, double* Rd, double* Center, double r){
     double c = sqr(Ro[0]) + sqr(Ro[1]) + sqr(Ro[2]) + sqr(Center[0]) + sqr(Center[1]) + sqr(Center[2]) - 2*(Ro[0]*Center[0] + Rd[0]*Center[0] + Ro[1]*Center[1] + Rd[1]*Center[1] + Ro[2]*Center[2] + Rd[2]*Center[2]) - sqr(r);
     double d = sqr(b) - 4*a*c;
     if(d < 0){
-        fprintf(stderr, "Error: No imaginary numbers!\n");
-        return -1;
+ 	return -1;
     }
     d = sqrt(d);
-    double t = (-b - d) / (2 * a);
-    if(t > 0){
-        return t;
+    double t1 = (-b - d) / (2 * a);
+    double t2 = (-b + d) / (2 * a);
+    if(t1 > 0){
+        return t1;
     }
-    t = (-b + d) / (2 * a);
-    if(t > 0){
-        return t;
+    if(t2 > 0){
+        return t2;
     }
-    fprintf(stderr, "Error: Can't have 0 or negative distance!\n");
     return -1;
 }
 
@@ -98,7 +96,6 @@ double planeIntersection(double* Ro, double* Rd, double* position, double* norma
     if (t > 0){
         return t;
     }
-    fprintf(stderr, "Error: Can't have 0 or negative distance!\n");
     return -1;
 }
 
